@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from typing import List, Dict, Generator
+from typing import Any, List, Dict, Generator, Optional
 
 from .models.shiur import Shiur, ShiurDetails, QualityLevel
 from .models.exceptions import *
@@ -9,7 +9,7 @@ from .utils.session_manager import SessionManager
 load_dotenv()
 
 class KolHalashonAPI:
-    def __init__(self, username: str = None, password: str = None, use_session=False, session_file='session.pkl'):
+    def __init__(self, username: Optional[str] = None, password: Optional[str] = None, use_session: bool = False, session_file: str = 'session.pkl'):
         self.username = username if username else os.getenv('KOL_HALASHON_USERNAME', '')
         self.password = password if password else os.getenv('KOL_HALASHON_PASSWORD', '')
         self._base_url = "https://www2.kolhalashon.com:444/api/"
@@ -51,7 +51,7 @@ class KolHalashonAPI:
         raise AuthenticationError(f"Login failed with status code {response.status_code}")
 
 
-    def search_items(self, keyword: str, user_id: int = -1) -> List[Dict]:
+    def search_items(self, keyword: str, user_id: int = -1) -> List[Dict[str, Any]]:
         url = f"{self._base_url}Search/WebSite_GetSearchItems/{keyword}/{user_id}/1/4"
         response = self.session_manager.session.get(url, headers=self._headers)
         if response.status_code == 200:
@@ -63,7 +63,7 @@ class KolHalashonAPI:
 
     def search_rav_shiurim(self, rav_id: int) -> Generator[Shiur, None, None]:
         url = f"{self._base_url}Search/WebSite_GetRavShiurim/"
-        data = {
+        data: Dict[str, int | str] = {
             "QueryType": -1,
             "LangID": -1,
             "MasechetID": -1,
@@ -112,7 +112,7 @@ class KolHalashonAPI:
 
 
     @staticmethod
-    def format_shiurim(shiurim: List[Dict]) -> Generator[Shiur, None, None]:
+    def format_shiurim(shiurim: List[Dict[str, Any]]) -> Generator[Shiur, None, None]:
         for shiur in shiurim:
             yield Shiur(
                 file_id=shiur.get("FileId", 0),
@@ -133,7 +133,7 @@ class KolHalashonAPI:
             )
             
     @staticmethod
-    def _parse_shiur_details(data: Dict) -> ShiurDetails:
+    def _parse_shiur_details(data: Dict[str, Any]) -> ShiurDetails:
         return ShiurDetails(
             file_id=data.get("FileId", 0),
             title=data.get("TitleHebrew", ""),

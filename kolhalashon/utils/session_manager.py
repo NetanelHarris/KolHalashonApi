@@ -2,8 +2,9 @@ import pickle
 import os
 import logging
 import requests
-from typing import Optional
+from typing import Any, Optional
 from urllib.parse import urljoin
+from ..models.session import SessionData
 from ..models.exceptions import *
 
 
@@ -36,7 +37,7 @@ class SessionManager:
             try:
                 with open(self.session_file, 'rb') as file:
                     data = pickle.load(file)
-                    self.session.cookies.update(data.get('cookies', {}))
+                    self.session.cookies.update(data.get('cookies', {})) # type: ignore
                     self.auth_token = data.get('auth_token')
                     self.site_key = data.get('site_key')
                     self.headers.update(data.get('headers', {}))
@@ -55,7 +56,7 @@ class SessionManager:
         logger.debug("Empty session initialized")
             
     def save_session(self) -> None:
-        session_data = {
+        session_data: SessionData = {
             'cookies': self.session.cookies.get_dict(),
             'auth_token': self.auth_token,
             'site_key': self.site_key,
@@ -83,10 +84,10 @@ class SessionManager:
             raise DownloadKeyNotFoundException(file_id)
         return key
 
-    def _send_request(self, method: str, url: str, **kwargs) -> requests.Response:
+    def _send_request(self, method: str, url: str, **kwargs: Any) -> requests.Response:
         kwargs['headers'] = self.headers
         response = self.session.request(method, url, **kwargs)
-        self.session.cookies.update(response.cookies)
+        self.session.cookies.update(response.cookies) # type: ignore
         self.save_session()
         return response
 
