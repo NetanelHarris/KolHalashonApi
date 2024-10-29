@@ -2,7 +2,6 @@ import os
 from dotenv import load_dotenv
 from typing import List, Dict, Generator
 
-from sympy import Li
 from .models.shiur import Shiur, ShiurDetails, QualityLevel
 from .models.exceptions import *
 from .utils.session_manager import SessionManager
